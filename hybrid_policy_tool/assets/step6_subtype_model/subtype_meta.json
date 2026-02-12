@@ -1,0 +1,27 @@
+{
+  "features": [
+    "age",
+    "charlson_comorbidity_index",
+    "hemoglobin",
+    "pao2_fio2",
+    "sofa",
+    "bun",
+    "creatinine",
+    "albumin",
+    "output_total",
+    "BCR"
+  ],
+  "label_col": "Cluster_Label",
+  "label_mapping": {
+    "1": 0,
+    "2": 1,
+    "3": 2
+  },
+  "meaning": {
+    "0": "insensitive to nutrition dose",
+    "1": "higher is better",
+    "2": "too high is harmful (soft penalty bin5 day4-7)"
+  },
+  "random_seed": 42,
+  "train_rows_after_dropna": 2418
+}

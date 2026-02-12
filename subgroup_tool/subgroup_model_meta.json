@@ -1,0 +1,18 @@
+{
+  "version": "subgroup_xgb_need_v1",
+  "features": [
+    "Age",
+    "CCI",
+    "Hemoglobin",
+    "Albumin",
+    "Creatinine",
+    "BUN",
+    "BCR",
+    "PF_ratio",
+    "Urine_output",
+    "SOFA"
+  ],
+  "label_col": "Cluster_Label",
+  "num_class": 3,
+  "model_file": "subgroup_xgb_model.json"
+}

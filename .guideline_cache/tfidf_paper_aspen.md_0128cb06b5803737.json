@@ -1,0 +1,8 @@
+{
+  "token_pattern": "(?u)\\b\\w+\\b|[\\u4e00-\\u9fff]",
+  "ngram_range": [
+    1,
+    2
+  ],
+  "max_features": 80000
+}
