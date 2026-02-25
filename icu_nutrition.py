@@ -538,7 +538,7 @@ except Exception as e:
     st.stop()
 
 user_input = st.chat_input("请输入患者情况或问题")
-mode = st.radio("工作模式", ["治疗建议", "专家咨询", "Hybrid 决策（推荐档位）"], index=0)
+mode = st.radio("工作模式", ["治疗建议", "专家咨询", "混合决策（达标率）"], index=0)
 debug_mode = st.toggle("开发者模式", value=False)
 
 # =========================
@@ -596,14 +596,14 @@ with st.sidebar:
 
         colA, colB = st.columns(2)
         with colA:
-            if st.button("写入 Hybrid 上下文", use_container_width=True):
+            if st.button("写入 混合决策 上下文", use_container_width=True):
                 ctx_add = {"day": int(day_val)}
                 for k in STATE_FEATURES:
                     ctx_add[k] = state_vals.get(k, None)
                 for k in DAY1_FEATURES:
                     ctx_add[k] = day1_vals.get(k, None)
                 st.session_state.hybrid_ctx = merge_dict(st.session_state.hybrid_ctx, ctx_add)
-                st.toast("已写入 Hybrid 上下文。", icon="✅")
+                st.toast("已写入 混合决策 上下文。", icon="✅")
 
         with colB:
             if st.button("计算 subtype（缓存一次）", use_container_width=True):
@@ -626,9 +626,9 @@ with st.sidebar:
 
         st.divider()
 
-        if st.button("立即运行 Hybrid（侧栏）", use_container_width=True):
+        if st.button("立即运行 混合决策（侧栏）", use_container_width=True):
             if HybridPolicy is None:
-                st.error(f"Hybrid 模块未加载：{HYBRID_IMPORT_ERR}")
+                st.error(f"混合决策 模块未加载：{HYBRID_IMPORT_ERR}")
             else:
                 try:
                     pol = get_hybrid_policy()
@@ -640,42 +640,15 @@ with st.sidebar:
                         ctx[k] = day1_vals.get(k, None)
 
                     answer, detail = compute_hybrid_summary(pol, ctx, debug=debug_mode)
-                    st.success("Hybrid 已完成。结果已写入聊天窗口。")
+                    st.success("混合决策 已完成。结果已写入聊天窗口。")
                     st.session_state.history.append(("assistant", answer))
                     st.session_state.hybrid_last = detail
                     if debug_mode:
                         st.json(detail)
                 except Exception as e:
-                    st.error(f"Hybrid 运行失败：{e}")
+                    st.error(f"混合决策 运行失败：{e}")
 
-    st.divider()
 
-    # ---- Subgroup classifier (independent, optional)
-    with st.expander("Subgroup 亚型分类器（独立，可选）", expanded=False):
-        st.caption("这里复用 Day1/SG 的10项，不再维护两套输入。")
-        if st.button("用 Day1/SG 一键计算 subtype（并缓存）", use_container_width=True):
-            if run_subgroup is None:
-                st.error("subgroup_tool 未加载（run_subgroup=None）。")
-            else:
-                try:
-                    # read current sidebar day1 fields
-                    day1_ctx = {}
-                    for k in DAY1_FEATURES:
-                        day1_ctx[k] = st.session_state.get(f"d1_{k}", None)
-
-                    # compute BCR if needed
-                    if (day1_ctx.get("BCR") is None or float(day1_ctx.get("BCR", 0.0)) == 0.0) and day1_ctx.get("bun") is not None and day1_ctx.get("creatinine_day1") is not None:
-                        bun = float(day1_ctx["bun"])
-                        cr1 = float(day1_ctx["creatinine_day1"])
-                        if cr1 > 0:
-                            day1_ctx["BCR"] = bun / cr1
-
-                    subtype = compute_subtype_once_from_day1(day1_ctx)
-                    msg = f"subtype 已缓存：{subtype}（{SUBTYPE_MEANING_CN.get(subtype,'NA')}）"
-                    st.session_state.history.append(("assistant", msg))
-                    st.success(msg)
-                except Exception as e:
-                    st.error(f"subtype 计算失败：{e}")
 
 
 # =========================
@@ -706,9 +679,9 @@ if user_input:
             st.stop()
 
     # Hybrid decision
-    elif mode == "Hybrid 决策（推荐档位）":
+    elif mode == "混合决策（达标率）":
         if HybridPolicy is None:
-            st.session_state.history.append(("assistant", f"Hybrid 模块未加载成功：{HYBRID_IMPORT_ERR}"))
+            st.session_state.history.append(("assistant", f"混合决策 模块未加载成功：{HYBRID_IMPORT_ERR}"))
         else:
             parsed = parse_kv_from_text(user_input)
             st.session_state.hybrid_ctx = merge_dict(st.session_state.hybrid_ctx, parsed)
@@ -721,7 +694,7 @@ if user_input:
                 st.session_state.history.append(
                     ("assistant",
                      "Hybrid 计算缺少必要字段：\n- " + "\n- ".join(missing) +
-                     "\n\n请在侧栏“Hybrid 输入”补全后再运行，或在聊天中用 key=value 补全。")
+                     "\n\n请在侧栏“混合决策 输入”补全后再运行，或在聊天中用 key=value 补全。")
                 )
             else:
                 try:
@@ -730,10 +703,10 @@ if user_input:
                     st.session_state.history.append(("assistant", answer))
                     st.session_state.hybrid_last = detail
                     if debug_mode:
-                        with st.expander("Hybrid detail（调试）", expanded=False):
+                        with st.expander("混合决策（调试）", expanded=False):
                             st.json(detail)
                 except Exception as e:
-                    st.session_state.history.append(("assistant", f"Hybrid 计算失败：{e}"))
+                    st.session_state.history.append(("assistant", f"混合决策 计算失败：{e}"))
 
     # Workflow decision (KB)
     else:
@@ -767,7 +740,7 @@ if user_input:
             st.error(f"调用 DeepSeek 失败：{e}")
             st.stop()
 
-        reminder = "提示：如需使用 Hybrid 决策推荐，请切换到顶部“Hybrid 决策（推荐档位）”模式。"
+        reminder = "提示：如需使用 混合决策（达标率）推荐，请切换到顶部“混合决策（达标率）”模式。"
         st.session_state.history.append(("assistant", f"{answer}\n\n{reminder}"))
 
 
