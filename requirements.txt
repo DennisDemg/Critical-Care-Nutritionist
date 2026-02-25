@@ -4,3 +4,5 @@ certifi
 scikit-learn
 numpy
 pandas
+xgboost
+joblib
